@@ -18,9 +18,13 @@ public class PlayerMovement : MonoBehaviour
     public Vector2 groundCheckSize = new Vector2(0.5f, 0.1f);
     public LayerMask groundLayer;
 
+    [Header("SFX")]
+    public AudioClip jumpSFX;
+
     [Header("Components")]
     public Animator playerAnimator;
     public SpriteRenderer playerRenderer;
+    public AudioSource audioSource;
 
 
     Rigidbody2D body;
@@ -87,6 +91,7 @@ public class PlayerMovement : MonoBehaviour
             if (context.performed)
             {
                 body.linearVelocityY = jumpForce;
+                audioSource.PlayOneShot(jumpSFX);
             }
         }
 

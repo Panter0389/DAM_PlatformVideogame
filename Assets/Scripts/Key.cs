@@ -1,25 +1,19 @@
 using UnityEngine;
 
-public class Coin : MonoBehaviour
+public class Key : MonoBehaviour
 {
-
-
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.CompareTag("Player"))
         {
             PlayerInventory inventory = collision.gameObject.GetComponent<PlayerInventory>();
-            inventory.AddCoins(1);
-
+            inventory.TakeKey();
             Destroy(gameObject);
-            
         }
     }
 
     private void OnTriggerExit2D(Collider2D collision)
     {
     }
-
-
 
 }

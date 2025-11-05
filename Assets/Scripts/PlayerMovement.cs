@@ -7,6 +7,8 @@ public class PlayerMovement : MonoBehaviour
     [Header("General Settings")]
     public float playerSpeed = 10;
     public float jumpForce = 10;
+    public float wallJumpXForce = 5;
+    public float wallJumpYForce = 8;
 
     [Header("Gravity Settings")]
     public float baseGravity = 2;
@@ -39,6 +41,8 @@ public class PlayerMovement : MonoBehaviour
     bool leftWallCollision;
     bool rightWallCollision;
     float horizontalMovement = 0;
+    float wallJumpXSpeed = 0;
+
 
     private void Awake()
     {
@@ -48,10 +52,20 @@ public class PlayerMovement : MonoBehaviour
 
     public void FixedUpdate()
     {
-        body.linearVelocityX = horizontalMovement * playerSpeed;
+        body.linearVelocityX = (horizontalMovement * playerSpeed) + wallJumpXSpeed;
         GroundCheck();
         WallCheck();
         SetGravity();
+
+        if (wallJumpXSpeed != 0)
+            wallJumpXSpeed = wallJumpXSpeed * 0.92f;
+        if (Mathf.Abs(wallJumpXSpeed) < 0.01f)
+            wallJumpXSpeed = 0;
+
+        if (body.linearVelocityX > 0)
+            body.linearVelocityX = Mathf.Min(playerSpeed, body.linearVelocityX);
+        if (body.linearVelocityX < 0)
+            body.linearVelocityX = Mathf.Max(-playerSpeed, body.linearVelocityX);
     }
 
     public void Update()
@@ -112,12 +126,25 @@ public class PlayerMovement : MonoBehaviour
 
     public void PlayerInput_Jump(CallbackContext context)
     {
-        if (isGrounded)
+        if (context.performed)
         {
-            if (context.performed)
+            if (isGrounded)
             {
                 body.linearVelocityY = jumpForce;
                 audioSource.PlayOneShot(jumpSFX);
+            }
+            else if(rightWallCollision)
+            {
+                wallJumpXSpeed = -wallJumpXForce;
+                body.linearVelocityY = wallJumpYForce;
+                audioSource.PlayOneShot(jumpSFX);
+            }
+            else if(leftWallCollision)
+            {
+                wallJumpXSpeed = wallJumpXForce;
+                body.linearVelocityY = wallJumpYForce;
+                audioSource.PlayOneShot(jumpSFX);
+
             }
         }
 

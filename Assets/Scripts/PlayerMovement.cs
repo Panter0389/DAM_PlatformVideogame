@@ -11,12 +11,19 @@ public class PlayerMovement : MonoBehaviour
     [Header("Gravity Settings")]
     public float baseGravity = 2;
     public float maxFallSpeed = 18f;
+    public float wallSlideMaxFallSpeed = 9f;
     public float fallSpeedMultiplier = 2f;
 
     [Header("Ground Check")]
     public Transform groundCheckTransform;
     public Vector2 groundCheckSize = new Vector2(0.5f, 0.1f);
     public LayerMask groundLayer;
+
+    [Header("Wall Check")]
+    public Transform leftWallCheckTransform;
+    public Transform rightWallCheckTransform;
+    public Vector2 wallCheckSize = new Vector2(0.5f, 0.1f);
+    public LayerMask wallLayer;
 
     [Header("SFX")]
     public AudioClip jumpSFX;
@@ -29,6 +36,8 @@ public class PlayerMovement : MonoBehaviour
 
     Rigidbody2D body;
     bool isGrounded;
+    bool leftWallCollision;
+    bool rightWallCollision;
     float horizontalMovement = 0;
 
     private void Awake()
@@ -41,6 +50,7 @@ public class PlayerMovement : MonoBehaviour
     {
         body.linearVelocityX = horizontalMovement * playerSpeed;
         GroundCheck();
+        WallCheck();
         SetGravity();
     }
 
@@ -53,8 +63,7 @@ public class PlayerMovement : MonoBehaviour
         {
             bool needFlip = body.linearVelocityX < 0;
             playerRenderer.flipX = needFlip;
-        }
-       
+        }       
     }
 
     private void SetGravity()
@@ -62,7 +71,11 @@ public class PlayerMovement : MonoBehaviour
         if(body.linearVelocityY < 0)
         {
             body.gravityScale = baseGravity * fallSpeedMultiplier;
-            body.linearVelocityY = Mathf.Max(body.linearVelocityY, -maxFallSpeed);
+
+            if(leftWallCollision || rightWallCollision)
+                body.linearVelocityY = Mathf.Max(body.linearVelocityY, -wallSlideMaxFallSpeed);
+            else
+                body.linearVelocityY = Mathf.Max(body.linearVelocityY, -maxFallSpeed);
         }
         else
         {
@@ -76,6 +89,19 @@ public class PlayerMovement : MonoBehaviour
             isGrounded = true;
         else
             isGrounded = false;
+    }
+
+    public void WallCheck()
+    {
+        if (Physics2D.OverlapBox(rightWallCheckTransform.position, wallCheckSize, 0, wallLayer))
+            rightWallCollision = true;
+        else
+            rightWallCollision = false;
+
+        if (Physics2D.OverlapBox(leftWallCheckTransform.position, wallCheckSize, 0, wallLayer))
+            leftWallCollision = true;
+        else
+            leftWallCollision = false;
     }
 
 
@@ -105,6 +131,8 @@ public class PlayerMovement : MonoBehaviour
     public void OnDrawGizmos()
     {
         Gizmos.DrawCube(groundCheckTransform.position, groundCheckSize);
+        Gizmos.DrawCube(rightWallCheckTransform.position, wallCheckSize);
+        Gizmos.DrawCube(leftWallCheckTransform.position, wallCheckSize);
     }
 
 }
